@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width">
+     <link rel="shortcut icon" href="images/logo.png">
+     <link rel="stylesheet" type="text/css" href="css/html5reset.css">
+     <link rel="stylesheet" type="text/css" href="css/style.css">
+     <script type="text/javascript" src="js/webgazer.js"></script>
+     <title>FREEvisuWILL</title>
+</head>
+
+<body>
+     <button id="initButton" onclick="startWebcam();">init</button>
+
+     <canvas id="theCanvas">
+          <div id="vis"></div>
+
+          <div id="txt"></div>
+     </canvas>
+
+     <script>
+          var initButton = document.getElementById("initButton");
+          // var gazeLocate = document.getElementById("gazeLocate");
+          var theCanvas = document.getElementById("theCanvas");
+          var canvasContext = theCanvas.getContext("2d");
+
+          function startWebcam() {
+               initButton.style = "display: none;"
+               theCanvas.style = "display: initial;"
+               timerStart();
+               canvasResize();
+               document.addEventListener("mousemove", drawMouse, false);
+               // gazeLocate.style = "display: initial;" +
+               //                    "position: absolute;" +
+               //                    "height: 5vh;" +
+	          //                    "width: 5vh;" +
+	          //                    "border-radius: 2.5vh;" +
+               //                    "background-color: gray;";
+               // webgazer.setGazeListener(function(data, elapsedTime) {
+               //      if (data == null) {
+               //           return;
+               //      }
+               //      var xprediction = data.x; //these x coordinates are relative to the viewport
+               //      var yprediction = data.y; //these y coordinates are relative to the viewport
+               //      // console.log("X: " + xprediction + "\n" +
+               //      //             "Y: " + yprediction + "\n" +
+               //      //             "t: " + elapsedTime); //elapsed time is based on time since begin was called
+               //      drawGaze(xprediction, yprediction);
+               // }).begin();
+               // webgazer.setTracker("")
+          }
+
+          var timer = 30;
+          var visualTimer = (timer*10) - 2;
+
+          var bodyStyle = document.body.style;
+
+          var firstrBegin = 50;
+          var firstgBegin = 50;
+          var firstbBegin = 50;
+          var secondrBegin = 0;
+          var secondgBegin = 0;
+          var secondbBegin = 0;
+
+          var firstrEnd = 165; // 255, 200
+          var firstgEnd = 140; // 211, 168
+          var firstbEnd = 94;  // 130, 108
+          var secondrEnd = 76; // 136, 99
+          var secondgEnd = 27; // 48,  35
+          var secondbEnd = 13; // 23,  17
+
+          var bkgInc = (timer - 1)*10;
+          
+          var firstrInt = (firstrEnd - firstrBegin)/bkgInc;
+          var firstgInt = (firstgEnd - firstgBegin)/bkgInc;
+          var firstbInt = (firstbEnd - firstbBegin)/bkgInc;
+          var secondrInt = (secondrEnd - secondrBegin)/bkgInc;
+          var secondgInt = (secondgEnd - secondgBegin)/bkgInc;
+          var secondbInt = (secondbEnd - secondbBegin)/bkgInc;
+
+          var firstr = firstrBegin;
+          var firstg = firstgBegin;
+          var firstb = firstbBegin;
+          var secondr = secondrBegin;
+          var secondg = secondgBegin;
+          var secondb = secondbBegin;
+
+          function timerStart() {
+               var timerInterval = setInterval(function() {
+                    timer = timer - 1;
+                    console.log("timer: " + timer);
+                    if (timer <= 0) {
+                         // webgazer.end();
+                         document.removeEventListener("mousemove", drawMouse, false);
+                         canvasContext.clearRect(0, 0, theCanvas.width, theCanvas.height);
+                         clearInterval(backgroundInterval);
+                         clearInterval(timerInterval);
+                         stopTrack();
+                    }
+               }, 1000);
+
+               var backgroundInterval = setInterval(function() {
+                    bodyStyle.backgroundImage = "radial-gradient(rgb(" + firstr + "," + firstg + "," + firstb + "),rgb(" + secondr + "," + secondg + "," + secondb + "))";
+                    firstr = firstr + firstrInt;
+                    firstg = firstg + firstgInt;
+                    firstb = firstb + firstbInt;
+                    secondr = secondr + secondrInt;
+                    secondg = secondg + secondgInt;
+                    secondb = secondb + secondbInt;
+                    storeData();
+               }, 100);
+          }
+
+          // var gazeLocate = document.getElementById("gazeLocate");
+          // function drawGaze(x, y) {
+          //      // gazeLocate.style = "display: initial;" +
+          //      //                    "position: absolute;" + 
+          //      //                    "top: " + yprediction + ";" +
+          //      //                    "left: " + xprediction + ";" +
+          //      //                    "height: 5vh;" +
+	     //      //                    "width: 5vh;" +
+	     //      //                    "border-radius: 2.5vh;" +
+          //      //                    "background-color: gray;";
+          //      gazeLocate.style = "display: initial; position: absolute; top: " + y + "; left: " + x + ";" +
+          //                         "height: 5vh;" +
+	     //                         "width: 5vh;" +
+	     //                         "border-radius: 2.5vh;" + 
+          //                         "background-color: gray;";
+          // }
+
+          function canvasResize() {
+               theCanvas.width = theCanvas.getBoundingClientRect().width;
+               theCanvas.height = theCanvas.getBoundingClientRect().height;
+          }
+
+          var x;
+          var y;
+
+          function drawMouse(e) {
+               x = e.clientX;
+               y = e.clientY;
+               canvasContext.clearRect(0, 0, theCanvas.width, theCanvas.height);
+               canvasContext.beginPath();
+               canvasContext.arc(x, y, 16, 0, 2*Math.PI);
+               canvasContext.strokeStyle = "white";
+               canvasContext.lineWidth = 3;
+               canvasContext.stroke();
+               canvasContext.closePath();
+          }
+
+          var data = [];
+          var dataTime = 0;
+
+          function storeData() {
+               data.push([dataTime,x,y]);
+               dataTime = dataTime + 0.1;
+          }
+
+          function stopTrack() {
+               console.log(data);
+               var loading = [
+                    [0, 960, 500],
+                    [1, 988, 512],
+                    [2, 1000, 540],
+                    [3, 988, 568],
+                    [4, 960, 580],
+                    [5, 932, 568],
+                    [6, 920, 540],
+                    [7, 932, 512],
+                    [8, 2000, 2000],
+                    [9, 2000, 2000],
+                    [10, 2000, 2000]
+               ];
+               var l = 0;
+               var loadInterval = setInterval(function() {
+                    canvasContext.beginPath();
+                    canvasContext.arc(loading[l][1], loading[l][2], 10, 0, 2*Math.PI);
+                    canvasContext.fillStyle = "white";
+                    canvasContext.fill();
+                    canvasContext.closePath();
+                    l = l + 1;
+                    if (l >= loading.length) {
+                         clearInterval(loadInterval);
+                         canvasContext.clearRect(0, 0, theCanvas.width, theCanvas.height);
+                         processData();
+                    }
+               }, 250);
+          }
+
+          function processData() {
+               var count = 0;
+               var avgX = 0;
+               var avgY = 0;
+               for (n = 0; n < data.length; n++) {
+                    if ((data[n][1] == undefined) || (data[n][2] == undefined)) continue;
+                    avgX = avgX + parseInt(data[n][1]);
+                    avgY = avgY + parseInt(data[n][2]);
+                    count = count + 1;
+               }
+               avgX = avgX / count;
+               avgY = avgY / count;
+               console.log(avgX + ", " + avgY);
+
+               // if ((avgX > 960) && (avgY > 540)) {
+               // }
+
+               visualizeData();
+          }
+
+          function visualizeData() {
+               var i = 0;
+               var visualInterval = setInterval(function() {
+                    canvasContext.beginPath();
+                    canvasContext.arc(data[i][1], data[i][2], 5, 0, 2*Math.PI);
+                    canvasContext.fillStyle = "white";
+                    canvasContext.fill();
+                    canvasContext.closePath();
+                    i = i + 1;
+                    if (i > visualTimer) clearInterval(visualInterval);
+               }, 25);
+          }
+
+     </script>
+</body>
+
+</html>
